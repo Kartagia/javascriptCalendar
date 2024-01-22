@@ -1,0 +1,29 @@
+{
+  "name": "calendars",
+  "version": "0.0.1",
+  "description": "The calendar package for handling various time related classes for creating a custom calendars. The classes intends to be compatible with TC39 proposal.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha --harmony"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kartagia/javascriptCalendar.git"
+  },
+  "keywords": [
+    "calendar",
+    "library",
+    "utility"
+  ],
+  "author": "Antti Kautiainen <antti@kautiainen.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Kartagia/javascriptCalendar/issues"
+  },
+  "homepage": "https://github.com/Kartagia/javascriptCalendar#readme",
+  "devDependencies": {
+    "chai": "^5.0.0",
+    "mocha": "^10.2.0",
+    "typescript": "^5.3.3"
+  }
+}

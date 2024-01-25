@@ -22,8 +22,12 @@
   },
   "homepage": "https://github.com/Kartagia/javascriptCalendar#readme",
   "devDependencies": {
+    "babel": "^6.23.0",
     "chai": "^5.0.0",
     "mocha": "^10.2.0",
     "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "rollup": "^4.9.6"
   }
 }

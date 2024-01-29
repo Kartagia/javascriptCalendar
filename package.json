@@ -2,8 +2,10 @@
   "name": "calendars",
   "version": "0.0.1",
   "description": "The calendar package for handling various time related classes for creating a custom calendars. The classes intends to be compatible with TC39 proposal.",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
   "scripts": {
+    "compile": "tsc",
     "test": "mocha --harmony"
   },
   "repository": {

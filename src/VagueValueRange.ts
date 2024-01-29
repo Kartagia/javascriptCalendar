@@ -1,5 +1,10 @@
 import { ValueRange } from "./ValueRange";
-import { Comparable } from "./comparison";
+import { Comparable, Ordered } from "./comparison";
+
+
+export function isOrdered<Type>(value: object): value is Ordered<Type> {
+  return typeof value === "object" && ["successor", "predecessor"].every( (key) => (key in value));
+}
 
 /**
  * A Vague value range defines boundaries as ranges instead of using fixed values.
@@ -22,7 +27,6 @@ export class VagueValueRange<Type extends Comparable<Type>> extends ValueRange<
     );
   }
 
-
   /**
    * Create the value range boundary equivalent to the given boundary.
    * @param boundary The boundary candidate.
@@ -32,7 +36,7 @@ export class VagueValueRange<Type extends Comparable<Type>> extends ValueRange<
     boundary: Type | ValueRange<Type> | undefined
   ): ValueRange<Type> | undefined {
     if (typeof boundary === "undefined") {
-      return boundary;
+      return undefined;
     } else if (boundary instanceof ValueRange) {
       return boundary;
     } else {
@@ -135,6 +139,68 @@ export class VagueValueRange<Type extends Comparable<Type>> extends ValueRange<
     }
   }
 
+  contains(value: Type|ValueRange<Type>): boolean {
+    if (value instanceof ValueRange) {
+      return super.contains(value);
+    } else {
+      return super.contains(ValueRange.closedRange(value, value));
+    }
+  }
+
+  /**
+   * Expands the lower boundary to contain the given value.
+   * If the value is undefiend, the lower boundary is changed into lower unbounded.
+   */
+  expandLowerBoundaryValue(lowerBoundaryValue: Type|undefined): VagueValueRange<Type> {
+    if (this.hasLowerBoundary) {
+      if (lowerBoundaryValue === undefined) {
+	return VagueValueRange.create(
+	  this.getLowerBoundary().expandLowerBoundary(lowerBoundaryValue),
+	  this.upperBoundary,
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary
+	);
+      } else {
+	return VagueValueRange.create(
+	  this.getLowerBoundary().expand(lowerBoundaryValue),
+	  this.upperBoundary,
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary
+	);
+      }
+    } else {
+      return this;
+    }
+  }
+
+  /**
+   * Expands the upper boundary to contain the given value.
+   * If the value is undefiend, the upper boundary is changed into upper unbounded.
+   * @returns The new value range created by the vague value range.
+   * @throws Exception The value range could not be reliably expanded to the given value.
+   */
+  expandUpperBoundaryValue(upperBoundaryValue: Type|undefined): VagueValueRange<Type> {
+    if (this.hasUpperBoundary) {
+      if (upperBoundaryValue === undefined) {
+	return VagueValueRange.create(
+	  this.lowerBoundary,
+	  this.getUpperBoundary().expandUpperBoundary(upperBoundaryValue),
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary
+	);
+      } else {
+	return VagueValueRange.create(
+	  this.lowerBoundary,
+	  this.getUpperBoundary().expand(upperBoundaryValue),
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary
+	);
+      }
+    } else {
+      return this;
+    }
+  }
+  
 
   /**
    * Create a new vague range by expanding the lower boundary to include the given value.
@@ -144,16 +210,34 @@ export class VagueValueRange<Type extends Comparable<Type>> extends ValueRange<
    * @param lowerBoundary The value the lower boundary is expanded to.
    * @returns The new vague boundary with adjusted lower boundary.
    */
-  expandLowerBoundary(lowerBoundary: Type | undefined): VagueValueRange<Type> {
+  expandLowerBoundary(lowerBoundary: ValueRange<Type> | undefined): VagueValueRange<Type> {
+    if (this.hasLowerBoundary) {
+      if (lowerBoundary instanceof ValueRange) {
+	// Velue range expansion affects both upper and lower boundary of the lower boundary.
+	return VagueValueRange.create(
+	  this.getLowerBoundary().expandLowerBoundary(lowerBoundary.lowerBoundary).expandUpperBoundary(lowerBoundary.upperBoundary),
+	  this.upperBoundary,
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary);
+      } else if (lowerBoundary === undefined) {
+	// The new expanded range is undefined.
+	return VagueValueRange.create(undefined, this.upperBoundary, this.includesLowerBoundary, this.includesUpperBoundary);
+      }
+    }
+    return this;
   }
 
-  expandUpperBoundary(upperBoundary: Type | undefined): VagueValueRange<Type> {
+  expandUpperBoundary(upperBoundary: ValueRange<Type> | undefined): VagueValueRange<Type> {
     if (this.hasUpperBoundary) {
-      if (upperBoundary === undefined || this.maximalUpperBoundary?.compareTo(upperBoundary)?.isGreater) {
+      if (upperBoundary instanceof ValueRange) {
+	// Velue range expansion affects both upper and lower boundary of the lower boundary.
+	return VagueValueRange.create(
+	  this.lowerBoundary,
+	  this.getUpperBoundary().expandLowerBoundary(upperBoundary.lowerBoundary).expandUpperBoundary(upperBoundary.upperBoundary),
+	  this.includesLowerBoundary,
+	  this.includesUpperBoundary);
+      } else if (upperBoundary === undefined) {
         return VagueValueRange.create(this.lowerBoundary, upperBoundary, this.includesLowerBoundary, this.includesUpperBoundary);
-      } else if (this.minmalUpperBoundary?.compareTo(upperBoundary)?.isLesser) {
-        return VagueValueRange.create(this.lowerBoundary,
-          new ValueRange(upperBoundary, this.maximalUpperBoundary, this), this.includesLowerBoundary, this.includesUpperBoundary);
       }
     }
     return this;

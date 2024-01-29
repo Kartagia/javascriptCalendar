@@ -31,6 +31,11 @@ export type TemporalInstance = {[fieldName: string]:Integer};
  */
 export type FieldDefinitionFunction<Type = number> = (fieldName: string, value?:Type) => FieldDefinition;
 
+/**
+ * Temporal value range.
+ */
+export type TemporalValueRange = ValueRange<ComparableInteger>|VagueValueRange<ComparableInteger>
+
 
 /**
  * The definition of a field.
@@ -48,7 +53,7 @@ export interface FieldDefinition {
   /**
    * The range of valid values.
    */
-  readonly range: (ValueRange<ComparableInteger>|VagueValueRange<ComparableInteger>);
+  readonly range: TemporalValueRange;
 
   /**
    * The supported fields of the defined fields. 
@@ -57,10 +62,6 @@ export interface FieldDefinition {
 }
 
 
-/**
- * Temporal value range.
- */
-export type TemporalValueRange = ValueRange<ComparableInteger>|VagueValueRange<ComparableInteger>
 
 /**
  * The interface of the temporal fieldly for storing a temporal fielld.
@@ -106,6 +107,13 @@ export interface TemporalFieldly {
    */
   getValueRange(field: TemporalFieldly): Readonly<TemporalValueRange>;
 
+
+  /**
+   * Get value range of the current temporal field with value.
+   * @return The value range of the current field.
+   */
+  getValueRange(): Readonly<TemporalValueRange>;
+
   /**
    * Get value range of the current temporal field with value.
    * @param value The value of the current field.
@@ -113,25 +121,21 @@ export interface TemporalFieldly {
    */
   getValueRange(value: number | ComparableInteger): Readonly<TemporalValueRange>;
 
-  /**
-   * Get value range of the current temporal field with value.
-   * @return The value range of the current field.
-   */
-  getValueRange(): TemporalValueRange;
 
-    /**
-     * Get value range of the temporal field with value.
-     * @param field The temporal field.
-     * @param value The value of the current field.
-     * @throws {UnsupportedFieldException} The field is not supported by the temporal fieldly.
-     * @throws {RangeError} The given field value is invalid.
-     */
-    getValueRange(
-      field: TemporalFieldly,
-      value: number | ComparableInteger
-    ): Readonly<TemporalValueRange>;
+  /**
+   * Get value range of the temporal field with value.
+   * @param field The temporal field.
+   * @param value The value of the current field.
+   * @throws {UnsupportedFieldException} The field is not supported by the temporal fieldly.
+   * @throws {RangeError} The given field value is invalid.
+   */
+  getValueRange(
+    field: TemporalFieldly,
+    value: number | ComparableInteger
+  ): Readonly<TemporalValueRange>;
   
-  
+  getValueRange( fieldOrValue?: TemporalFieldly|Integer|ComparableInteger, 
+    value?: number| ComparableInteger): Readonly<TemporalValueRange>;
 }
 
 /**
@@ -219,11 +223,10 @@ export interface TemporalFieldsInstance {
 
   /**
    * Get the field value.
+   * @åaram field The queried field.
    * @returns The field value, if the field belongs to the fields, or an undefined value.
    */
   get(field: Readonly<string|Definitions.Field|TemporalFieldly>): Integer|undefined;
-
-  getFieldvalues
 
   /**
    * Does the temporal instance support the field.

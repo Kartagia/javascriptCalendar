@@ -4,10 +4,10 @@
  * The module containing various tools for comparison.
  */
 
+
 /**
  * Interface of a comparison result.
  */
-
 export interface ComparisonResult {
   /**
    * Comparison result.
@@ -39,6 +39,7 @@ export interface ComparisonResult {
    */
   exists: boolean;
 }
+
 /**
  * Get the comparison result from a JavaScript comparison result.
  * @param result The Java Script comparison value.
@@ -106,6 +107,7 @@ export class DefaultComparator
     );
   }
 }
+
 /**
  * The default comparator of the Java Script.
  */
@@ -139,7 +141,7 @@ export interface Comparable<Type> {
  * The interface representing an order.
  * The order may contain loops or cycles.
  */
-interface Order<Type> {
+export interface Order<Type> {
 
   /**
    * Get the predecessor of a value.
@@ -177,12 +179,12 @@ interface Order<Type> {
  * - if (hasSuccessor(x) && getSuccessor(x) === y) then x < y.
  * - if (getSuccessor(x) === y || getPredecessor(x) === y) then x === undefined || x !== y
  */
-interface NaturalOrder<Type> extends Order<Type>, Comparable<Type> {
+export interface NaturalOrder<Type> extends Order<Type>, Comparable<Type> {
 }
 /**
  * The interface indicating the type is ordered.
  */
-interface Ordered<Type> extends Comparable<Type> {
+export interface Ordered<Type> extends Comparable<Type> {
 
   /**
    * The predecessor of the current value.
@@ -198,8 +200,36 @@ interface Ordered<Type> extends Comparable<Type> {
  * A comparable wrapper for a number.
  */
 
+/**
+  * The type of integers.
+  */
+export type Integer = number & { __integer: true };
 
 
+/**
+ * The gatekeeper function to determine whether a value is an integer.
+ */
+export function isInteger(value: number): value is Integer {
+  return Number.isSafeInteger(value);
+}
+
+/**
+ * The type of a positive integers.
+ */
+export type PositiveInteger = Integer & { __positiveInteger: true };
+
+
+/**
+ * The gate keeper function to determing if a value is a positive integer.
+ */
+export function isPositiveInteger(value: number): value is PositiveInteger {
+  return isInteger(value) && value > 0;
+}
+
+
+/**
+ * A comparable is a wrapper class combining both comparable and ordered with a number.
+ */
 export class ComparableNumber implements Comparable<number | ComparableNumber>, Ordered<ComparableNumber> {
   /**
    * The value of the comparable number.
@@ -248,7 +278,6 @@ export class ComparableNumber implements Comparable<number | ComparableNumber>, 
 /**
  * Comparable integer value. The value order includes only integers.
  */
-
 export class ComparableInteger extends ComparableNumber implements Ordered<ComparableInteger> {
 
   /**
@@ -257,7 +286,7 @@ export class ComparableInteger extends ComparableNumber implements Ordered<Compa
    * @throws {RangeError} The value was not a safe integer.
    */
   constructor(value: number) {
-    if (Number.isSafeInteger(value)) {
+    if (isInteger(value)) {
       super(value);
     } else {
       throw new RangeError("Cannot create comaprable integer from non-safe integer");
@@ -277,6 +306,15 @@ export class ComparableInteger extends ComparableNumber implements Ordered<Compa
       return new ComparableInteger(this.value - 1);
     }
     return undefined;
+  }
+
+  valueOf(): Integer {
+    const result: number = super.valueOf();
+    if (isInteger(result)) {
+      return result;;
+    } else {
+      throw new Error("Corrupted Comparable Integer not containing an integer value");
+    }
   }
 }
 

@@ -219,11 +219,10 @@ export interface TemporalFieldsInstance {
 
   /**
    * Get the field value.
+   * @åaram field The queried field.
    * @returns The field value, if the field belongs to the fields, or an undefined value.
    */
   get(field: Readonly<string|Definitions.Field|TemporalFieldly>): Integer|undefined;
-
-  getFieldvalues
 
   /**
    * Does the temporal instance support the field.

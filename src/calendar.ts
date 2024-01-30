@@ -14,6 +14,22 @@ import { VagueValueRange } from "./VagueValueRange";
 import { ValueRange } from "./ValueRange";
 
 /**
+ * The field offset function.
+ * @param canonicalValue The canonical field value.
+ * @returns The actual field value.
+ * @throws {UnsupportedFieldException} The given field is not supported by the current calendar.
+ */
+export type FieldOffsetFunction = (fieldName: string, canonicalValue: TemporalInstance) => Integer;
+
+/**
+ * The function determining the canonical field value from the calendar values.
+ * @param calendarValues The calendar base field values.
+ * @returns the canonical value of the field.
+ * @throws {UnsupportedFieldException} The given field is not supported by the canonical calendar.
+ */
+export type CanonicalValueFunction = (fieldName: string, calendarValues: TemporalInstance) => Integer;
+
+/**
  * The options used for calendar construction.
  */
 interface CalendarOptions {
@@ -30,11 +46,9 @@ interface CalendarOptions {
   leapYear?: ((year: number) => boolean);
 
   /**
-   * The offsets of the fields compared to the ISO calendar years at the
-   * start of the year.
-   * - Any calendar fields
+   * The offsets of the canonical field values to get the actual field values.
    */
-  offset?: Record<string, number|((value:number)=>number)>;
+  offset?: Record<string, Integer|FieldOffsetFunction>;
 
 
   /**
@@ -87,9 +101,9 @@ export class FieldDefintionFactory<Type> {
    * @throws {RangeError} The given current value is not supported.
    */
   createDefinition(fieldName: string, currentValue?: Type): FieldDefinition {
-    if (this.fieldValues.has(fieldName)) {
-      const valueEntries : Map<Type, Partial<FieldDefinition>> = this.fieldValues.get(fieldName);
-      if (valueEntries.has(currentValue)) {
+    let valueEntries : Map<Type, Partial<FieldDefinition>>|undefined;
+    if (this.fieldValues.has(fieldName) && (valueEntries = this.fieldValues.get(fieldName)) !== undefined) {
+      if (currentValue !== undefined && valueEntries.has(currentValue)) {
         return {
           fieldName, 
           field: undefined,
@@ -97,19 +111,11 @@ export class FieldDefintionFactory<Type> {
           supportedFields: {},
           ...(valueEntries.get(currentValue))
         };
-      } else if (currentValue !== undefined && valueEntries.has(undefined)) {
-        return {
-          fieldName, 
-          field: undefined,
-          range: ValueRange.closedRange(new ComparableInteger(1), new ComparableInteger(0)),
-          supportedFields: {},
-          ...(valueEntries.get(undefined))
-        };
       }
       throw new RangeError("Invalid current value");
     }
     // Fallback is the exception.
-    throw new UnsupportedFieldException(null, null, fieldName);
+    throw new UnsupportedFieldException(undefined, undefined, fieldName);
   }
 
   /**
@@ -178,7 +184,10 @@ export class FieldBuilder {
    */
   field: TemporalFieldly|undefined = undefined;
 
-  values: VagueValueRange<ComparableInteger>;
+  /**
+   * The valid value range of the values.
+   */
+  values: TemporalValueRange;
 
 
   /**
@@ -189,10 +198,13 @@ export class FieldBuilder {
   
   constructor(fieldName: string) {
     this.fieldName = fieldName;
+    this.values = VagueValueRange.closedRange<ComparableInteger>(undefined, undefined);
+    this.supportedFields = new Map<string, FieldBuilder>();
+    this.supportedFields.set(fieldName, new FieldBuilder(fieldName));
   }
 
-  composeSupportedFields(): Record<string, FieldDefinition|FieldDefinitionFunction<ComparableInteger>> {
-    const result = {};
+  composeSupportedFields(): Record<string, FieldDefinition|FieldDefinitionFunction<number|ComparableInteger>> {
+    const result : Record<string,  FieldDefinition|FieldDefinitionFunction<number|ComparableInteger>> = {};
     [...this.supportedFields.entries()].forEach( ([fieldName, builder]) => {
       result[fieldName] = builder.build();
     })
@@ -243,6 +255,7 @@ export class CalendarBuilder {
   constructor(calendarName: string, fields?: Map<string, FieldBuilder>, isImmutable?:boolean) {
     this.calendarName = calendarName;
     this.immutable = isImmutable == true;
+    this.fields = new Map();
   }
 
   addSupportedField(fieldName: string): CalendarBuilder {
@@ -436,7 +449,7 @@ export class BasicCalendarInstance implements CalendarInstance {
               result.current = field;
             } else {
               // Checking if the field is derived from the base feild.
-              result.result = Definitions.getField(fields, result.current) === field;
+              result.result = result.current !== undefined && (Definitions.getField(fields, result.current) === field);
             }
           }
           return result;
@@ -510,11 +523,11 @@ export class BasicCalendarInstance implements CalendarInstance {
   }
 
 
-  derive(fieldName: string, fieldValue: Integer): CalendarInstance|undefined {
+  derive(fieldName: string, fieldValue: Integer): CalendarInstance {
     if (this.range(fieldName)?.contains(new ComparableInteger(fieldValue))) {
       return this.calendar.createInstance({...this.fieldValues, [fieldName]:fieldValue})
     }
-    return undefined;
+    throw new UnsupportedFieldException(null, null, fieldName);
   }
 
   getRequiredFieldValues(): Set<Integer> {
@@ -529,6 +542,8 @@ export class BasicCalendarInstance implements CalendarInstance {
     });
     return result;
   }
+
+  get(): Integer;
 
   get(fieldName?: string): Integer|undefined {
     if (fieldName === undefined) {
@@ -567,7 +582,7 @@ export class BasicCalendarInstance implements CalendarInstance {
       const baseFieldName = typeof baseField === "string"? baseField: baseField.fieldName;
       return this.range(baseFieldName);
     }
-    if (fieldName in this.definition.supportedFields) {
+    if (this.definition?.supportedFields && fieldName in (this.definition.supportedFields)) {
       const fieldDefiner = this.definition.supportedFields[fieldName];
       if (typeof fieldDefiner === "function") {
         return fieldDefiner(fieldName, this.get()).range;
@@ -580,7 +595,7 @@ export class BasicCalendarInstance implements CalendarInstance {
   }
 
   set(fieldName: string, value: Integer): CalendarInstance {
-    if (fieldName in this.definition.supportedFields) {
+    if (this.definition?.supportedFields && fieldName in this.definition.supportedFields) {
       if (this.range(fieldName).contains(new ComparableInteger(value))) {
         return this.calendar.createInstance({...this.fieldValues, fieldName: value})
       } else {
@@ -674,7 +689,13 @@ export class YearAndMonthInstance extends BasicCalendarInstance {
   }
 
 }
-  
+
+/**
+ * The function determining the field range.
+ * @param fields The set of required field values.
+ */
+export type FieldRangeFunction = ((values: Set<Integer|ComparableInteger>) => TemporalValueRange);
+
 /**
  * Generic calendar.
  */
@@ -707,14 +728,14 @@ export class Calendar {
    * The offsets of the base calendar fields, or to the ISO calendar
    * fields. 
    */
-  private readonly offsets: Record<string, number|((value: number)=>number)>;
+  private readonly offsets: Record<string, Integer|FieldOffsetFunction>;
 
   /**
    * The mapping from supported field names to the range of the field, or a function
    * determining the range from the field value from the canonical year and day of year.
    */
   private readonly fieldRanges: Record<string, (
-    VagueValueRange<ComparableInteger>|((canonicalYear: number, dayOfYear: number)=>VagueValueRange<ComparableInteger>)
+    TemporalValueRange|FieldRangeFunction
   )>
   
   /**
@@ -744,14 +765,14 @@ export class Calendar {
       if (canonicalRanges) {
         this.canonicalRanges = canonicalRanges;
       } else {
-        this.getCanonicalValue = additionalRanges;
+        this.canonicalRanges = additionalRanges;
       }
     }
   }
-  constructFieldRanges(supportedFieldDefinitions: Record<string, FieldDefinition> | Map<string, FieldDefinition>, baseCalendar: Calendar, offsets: Record<string, number | ((value: number) => number)>, startOfYear: Partial<Omit<TemporalInstance, Definitions.BaseFields.year | Definitions.DerivedFields.era>>): [any, any] {
+  constructFieldRanges(supportedFieldDefinitions?: Record<string, FieldDefinition> | Map<string, FieldDefinition>, baseCalendar?: Calendar, offsets?: Record<string, number | FieldOffsetFunction>, startOfYear?: Partial<Omit<TemporalInstance, Definitions.BaseFields.year | Definitions.DerivedFields.era>>): [Record<string, TemporalValueRange|FieldRangeFunction>, Record<string, TemporalValueRange|FieldRangeFunction>] {
     throw new Error("Method not implemented.");
   }
-  constructSupportedFields(supportedFieldDefinitions: any, baseCalendar: Calendar) {
+  constructSupportedFields(supportedFieldDefinitions: any, baseCalendar?: Calendar): Record<string, FieldDefinition> {
     throw new Error("Method not implemented.");
   }
 
@@ -775,7 +796,7 @@ export class Calendar {
    * @returns True, if and only if the calendar supports all the given fields.
    */
   supportsAllFields(fieldNames: string[]): boolean {
-    return fieldNames.length && fieldNames.every( (field) => this.supportsField(field));
+    return fieldNames.length > 0 && fieldNames.every( (field) => this.supportsField(field));
   }
 
   /**
@@ -814,9 +835,9 @@ export class Calendar {
       // Generating the instantiator - all declarations without instantiation are ignored.
       return {
         baseField, 
-        allowedFields: allowedFields.filter( (field) => ("instance" in field)),
+        allowedFields: (allowedFields ?? []).filter( (field) => ("instance" in field)),
         instance: (calendar: Calendar, fields: FieldInstance): Type => {
-          const declaration = (allowedFields.filter( (field) => ("instance" in field))?.find( (fieldDef) => hasField(fields, baseField, fieldDef)));
+          const declaration = ((allowedFields ?? []).filter( (field) => ("instance" in field))?.find( (fieldDef) => hasField(fields, baseField, fieldDef)));
           if (declaration && "instance" in declaration) {
             const instance = declaration.instance;
             try {
@@ -889,7 +910,7 @@ export class Calendar {
         ]) as CalendarInstanceDeclaration<CalendarInstance>,
       this.createInstanceDeclaration(BaseFields.year, undefined, (calendar, fields) => (new YearInstance(this, fields)))
     ].find( (fields) => {    
-      return (fields.allowedFields.some( (field) => (Definitions.getField(source, fields.baseField))))
+      return ((fields.allowedFields ?? []).some( (field) => (Definitions.getField(source, fields.baseField))))
     });
     if (field?.instance) {
       if (typeof field.instance === "function") {
@@ -1025,7 +1046,7 @@ function createValueRange(lowerBoundary: Integer|null|undefined, upperBoundary: 
  */
 function createValueRange(lowerBoundary: number|null|undefined, upperBoundary: number|null|undefined, 
   defaultLowerBoundary: null|number = 1, 
-  defaultUpperBoundary: null|number = undefined): ValueRange<ComparableInteger> {
+  defaultUpperBoundary: null|number = null): ValueRange<ComparableInteger> {
   
 
   const actualLowerBoundary : ComparableInteger|undefined = toComparableInteger(lowerBoundary, defaultLowerBoundary ?? undefined);

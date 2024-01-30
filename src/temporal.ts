@@ -1,8 +1,8 @@
-import { ComparableInteger, Integer, PositiveInteger } from "./comparison";
-import { ValueRange } from "./ValueRange";
-import { VagueValueRange } from "./VagueValueRange";
-import { Definitions } from "./Definitions";
-import { UnsupportedFieldException } from ".";
+import { ComparableInteger, Integer, PositiveInteger } from "./comparison.js";
+import { ValueRange } from "./ValueRange.js";
+import { VagueValueRange } from "./VagueValueRange.js";
+import { Definitions } from "./Definitions.js";
+import { UnsupportedFieldException } from "./exceptions.js";
 
 /**
  * @module temporal

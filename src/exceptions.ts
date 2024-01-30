@@ -1,4 +1,4 @@
-import { TemporalFieldly } from "./index";
+import { TemporalFieldly } from "./temporal.js";
 
 /**
  * Calendar exceptions represents errors caused by the calendar module.
@@ -8,7 +8,7 @@ export class CalendarException extends Error {
   /**
    * The cause of the error.
    */
-  private cause: string | Error | undefined;
+  public readonly cause: string | Error | undefined;
 
   /**
    * Create a new calendar exception.

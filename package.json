@@ -4,9 +4,10 @@
   "description": "The calendar package for handling various time related classes for creating a custom calendars. The classes intends to be compatible with TC39 proposal.",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "type": "module",
   "scripts": {
-    "compile": "tsc",
-    "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"commonjs\\\"} mocha --extension .ts -r ts-node/register"
+    "compile": "tsc -p .",
+    "test": "npm run compile && cross-env NODE_ENV=test mocha --harmonize --recursive \\\"./dist/test/*.test.{js,cjs,mjs}\\\""
   },
   "repository": {
     "type": "git",

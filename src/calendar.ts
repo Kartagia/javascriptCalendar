@@ -5,13 +5,13 @@
  *¨The calendar containing module.
  */
 
-import { ComparableInteger, Integer, isInteger } from "./comparison";
-import { Definitions } from "./Definitions";
-import { CalendarException, InvalidFieldValue, UnsupportedFieldException } from "./exceptions";
-import { TemporalFieldly, FieldDefinitionFunction, TemporalFieldlyValue, FieldDefinition, TemporalInstance, TemporalInstance as FieldInstance, TemporalFieldsInstance, createRecord, FieldValueFunction } from "./temporal";
-import { TemporalValueRange } from "./temporal";
-import { VagueValueRange } from "./VagueValueRange";
-import { ValueRange } from "./ValueRange";
+import { ComparableInteger, Integer, isInteger } from "./comparison.js";
+import { Definitions } from "./Definitions.js";
+import { CalendarException, InvalidFieldValue, UnsupportedFieldException } from "./exceptions.js";
+import { TemporalFieldly, FieldDefinitionFunction, TemporalFieldlyValue, FieldDefinition, TemporalInstance, TemporalInstance as FieldInstance, TemporalFieldsInstance, createRecord, FieldValueFunction } from "./temporal.js";
+import { TemporalValueRange } from "./temporal.js";
+import { VagueValueRange } from "./VagueValueRange.js";
+import { ValueRange } from "./ValueRange.js";
 
 /**
  * The field offset function.

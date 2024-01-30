@@ -103,7 +103,7 @@ export class DefaultComparator
     comparee: string | number | boolean
   ): ComparisonResult {
     return getComparisonResult(
-      compared < comparee ? -1 : compared > comparee ? 1 : 0
+      compared < comparee ? Number.NEGATIVE_INFINITY : compared > comparee ? Number.POSITIVE_INFINITY : 0
     );
   }
 }

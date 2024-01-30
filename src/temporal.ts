@@ -1,25 +1,24 @@
-
-import {ComparableInteger, Integer, PositiveInteger} from "./comparison";
+import { ComparableInteger, Integer, PositiveInteger } from "./comparison";
 import { ValueRange } from "./ValueRange";
 import { VagueValueRange } from "./VagueValueRange";
 import { Definitions } from "./Definitions";
+import { UnsupportedFieldException } from ".";
 
 /**
  * @module temporal
- * The module defining the temporal data types. 
+ * The module defining the temporal data types.
  */
 
 /**
  * The velue type of the temporal values.
  * (The canonical year requires integer instead of positive integer)
  */
-export type ValueType = (Integer|PositiveInteger|ComparableInteger);
-
+export type ValueType = Integer | PositiveInteger | ComparableInteger;
 
 /**
  * A temporal instance placeholder.
  */
-export type TemporalInstance = {[fieldName: string]:Integer};
+export type TemporalInstance = { [fieldName: string]: Integer };
 
 /**
  * The function determining the field definition from the field name and the value.
@@ -27,15 +26,19 @@ export type TemporalInstance = {[fieldName: string]:Integer};
  * @param value The current value used to determine the refinement of the definition.
  * @returns The field definition of the given field with the given value.
  * @throws UnsupportedFieldException The field is not supported.
- * @throws RangeError The given value was invalid. 
+ * @throws RangeError The given value was invalid.
  */
-export type FieldDefinitionFunction<Type = number> = (fieldName: string, value?:Type) => FieldDefinition;
+export type FieldDefinitionFunction<Type = number> = (
+  fieldName: string,
+  value?: Type
+) => FieldDefinition;
 
 /**
  * Temporal value range.
  */
-export type TemporalValueRange = ValueRange<ComparableInteger>|VagueValueRange<ComparableInteger>
-
+export type TemporalValueRange =
+  | ValueRange<ComparableInteger>
+  | VagueValueRange<ComparableInteger>;
 
 /**
  * The definition of a field.
@@ -56,12 +59,13 @@ export interface FieldDefinition {
   readonly range: TemporalValueRange;
 
   /**
-   * The supported fields of the defined fields. 
+   * The supported fields of the defined fields.
    */
-  readonly supportedFields?: Record<string, FieldDefinition|FieldDefinitionFunction<number|ComparableInteger>>;
+  readonly supportedFields?: Record<
+    string,
+    FieldDefinition | FieldDefinitionFunction<number | ComparableInteger>
+  >;
 }
-
-
 
 /**
  * The interface of the temporal fieldly for storing a temporal fielld.
@@ -81,32 +85,33 @@ export interface TemporalFieldly {
    * The supported fields. This list must include the field name.
    */
   readonly supportedFieldsNames: Readonly<string[]>;
-	
+
   /**
    * The supported field definitions. This list must include the field name
    * for definition of the valid values.
    */
-  readonly supportedFieldDefinitions: Readonly<Record<string, FieldDefinition|FieldDefinitionFunction<Integer>>>;
-    
+  readonly supportedFieldDefinitions: Readonly<
+    Record<string, FieldDefinition | FieldDefinitionFunction<Integer>>
+  >;
+
   /**
    * The fields equivalent with the temporal fieldly.
    */
   readonly equivalentFields: Readonly<TemporalFieldSpec[]>;
-    
+
   /**
    * Create an instance of the field.
    * @param value The value of the field.
    * @throws {RangeError} The field value was invalid.
    */
   createInstance(value: number): Readonly<TemporalFieldlyValue>;
-    
+
   /**
    * Get value range of the temporal field.
    * @param field The temporal field.
    * @throws {UnsupportedFieldException} The field is not supported by the temporal fieldly.
    */
   getValueRange(field: TemporalFieldly): Readonly<TemporalValueRange>;
-
 
   /**
    * Get value range of the current temporal field with value.
@@ -119,8 +124,9 @@ export interface TemporalFieldly {
    * @param value The value of the current field.
    * @throws {RangeError} The given field value is invalid.
    */
-  getValueRange(value: number | ComparableInteger): Readonly<TemporalValueRange>;
-
+  getValueRange(
+    value: number | ComparableInteger
+  ): Readonly<TemporalValueRange>;
 
   /**
    * Get value range of the temporal field with value.
@@ -133,16 +139,17 @@ export interface TemporalFieldly {
     field: TemporalFieldly,
     value: number | ComparableInteger
   ): Readonly<TemporalValueRange>;
-  
-  getValueRange( fieldOrValue?: TemporalFieldly|Integer|ComparableInteger, 
-    value?: number| ComparableInteger): Readonly<TemporalValueRange>;
+
+  getValueRange(
+    fieldOrValue?: TemporalFieldly | Integer | ComparableInteger,
+    value?: number | ComparableInteger
+  ): Readonly<TemporalValueRange>;
 }
 
 /**
  * The type of the temporal field sepcification..
  */
-export type TemporalFieldSpec = (string|TemporalFieldly);
-
+export type TemporalFieldSpec = string | TemporalFieldly;
 
 /**
  * The temporal fieldly value. All temporal fieldlys store values
@@ -169,7 +176,7 @@ export interface TemporalFieldlyValue {
    * @param value The new value of the derived field.
    * @throws {InvalidFieldValue} The given field value was invalid.
    */
-  derive(value: Integer|ComparableInteger): TemporalFieldlyValue;
+  derive(value: Integer | ComparableInteger): TemporalFieldlyValue;
 
   /**
    * Create a new instance of a derived field with given value.
@@ -178,7 +185,10 @@ export interface TemporalFieldlyValue {
    * @throws {UnsupportedFieldException} The given field is not supported.
    * @throws {InvalidFieldValue} The given field value was invalid.
    */
-  derive(field: Definitions.Field|string, fieldValue: Integer|ComparableInteger): TemporalFieldlyValue;
+  derive(
+    field: Definitions.Field | string,
+    fieldValue: Integer | ComparableInteger
+  ): TemporalFieldlyValue;
 
   /**
    * Get a derived field.
@@ -210,30 +220,33 @@ export interface TemporalFieldlyValue {
  * An instance of one or more temporal feilds and their values.
  */
 export interface TemporalFieldsInstance {
-
   /**
    * The base fields required for the temporal instance.
    */
-  getBaseFields(): Readonly<Set<string|Definitions.Field|TemporalFieldly>>;
+  getBaseFields(): Readonly<Set<string | Definitions.Field | TemporalFieldly>>;
 
   /**
    * The set of the field values derived from the base values or with fixed value.
    */
-  getDerivedFields(): Readonly<Set<string|Definitions.Field|TemporalFieldly>>;
+  getDerivedFields(): Readonly<
+    Set<string | Definitions.Field | TemporalFieldly>
+  >;
 
   /**
    * Get the field value.
    * @åaram field The queried field.
    * @returns The field value, if the field belongs to the fields, or an undefined value.
    */
-  get(field: Readonly<string|Definitions.Field|TemporalFieldly>): Integer|undefined;
+  get(
+    field: Readonly<string | Definitions.Field | TemporalFieldly>
+  ): Integer | undefined;
 
   /**
    * Does the temporal instance support the field.
    * @param field The tested field.
    * @reutrns True, if and only if the temporal fieldly has the given field.
    */
-  has(field: Readonly<string|Definitions.Field|TemporalFieldly>): boolean;
+  has(field: Readonly<string | Definitions.Field | TemporalFieldly>): boolean;
 
   /**
    * Create a new temporal fields instance from the current one with given field set to given value.
@@ -241,46 +254,64 @@ export interface TemporalFieldsInstance {
    * @throws {InvalidFieldValue} The given field value is not valid.
    * @throws {UnsupportedFieldException} The given field is not supported.
    */
-  derive(field: Readonly<string|Definitions.Field|TemporalFieldly>, newValue: Integer): TemporalFieldsInstance;
+  derive(
+    field: Readonly<string | Definitions.Field | TemporalFieldly>,
+    newValue: Integer
+  ): TemporalFieldsInstance;
 
   /**
    * The record representation of the temporal field instance.
-   * @returns The record with field names as keys and the field values as values. 
+   * @returns The record with field names as keys and the field values as values.
    */
   toRecord(): Record<string, Integer>;
 }
 
 /**
+ * The function determining the field value from either the array of required field values, or from the
+ * record of the field values, or the mapping from field name to field values.
+ */
+export type FieldValueFunction = (
+  values: Array<Integer> | Record<string, Integer> | Map<string, Integer>
+) => Integer;
+
+/**
  * Createa a record from feild value mapping or record.
  * @param values The values of all fields.
- * @param required The required fields. 
+ * @param required The required fields.
  * @param optional The optional fields.
- * @param defaultValues The mapping from field name to the default vaolue of the field, or to 
+ * @param defaultValues The mapping from field name to the default vaolue of the field, or to
  * a function determining the value of the field from the set of the required field values int eh order
  * of the required fields set.
- * @returns 
+ * @returns
  */
-export function createRecord(values: Map<string, Integer>|Record<string, Integer>, 
-    required: Set<string|Definitions.Field|TemporalFieldly>, 
-    optional?: Set<string|Definitions.Field|TemporalFieldly>,
-    defaultValues?: Map<string, Integer|((values: Set<Integer>)=>Integer)>
-    ): Record<string,Integer>  {
-
-  const result = {};
-  const getValue : (field: string) => Integer|undefined = (values instanceof Map ? (field: string) => (values.get(field)) : 
-  (field: string) => (field in values ? values[field] : undefined))
-  const getField : (field: string|Definitions.Field|TemporalFieldly) => string = (field) => {
-    return (typeof field === "object")? field.fieldName : field;
+export function createRecord(
+  values: Map<string, Integer> | Record<string, Integer>,
+  required: Set<string | Definitions.Field | TemporalFieldly>,
+  optional?: Set<string | Definitions.Field | TemporalFieldly>,
+  defaultValues?: Map<string, Integer | FieldValueFunction>
+): Record<string, Integer> {
+  const result: Record<string, Integer> = {};
+  const getValue: (field: string) => Integer | undefined =
+    values instanceof Map
+      ? (field: string) => values.get(field)
+      : (field: string) => (field in values ? values[field] : undefined);
+  const getField: (
+    field: string | Definitions.Field | TemporalFieldly
+  ) => string = (field) => {
+    return typeof field === "object" ? field.fieldName : field;
   };
-  const getDefaultValue : ( value : Integer|((values: Set<Integer>)=>Integer), requiredFields: Set<Integer>) => (Integer|undefined) = 
-    (value, requiredFields) => {
-      if (typeof value === "function") {  
-        return value(requiredFields);
-      } else {
-        return value;
-      }
-    };
-  [...required.values()].forEach(element => {
+
+  const getDefaultValue: (
+    value: Integer | FieldValueFunction,
+    requiredFields: Array<Integer>
+  ) => Integer | undefined = (value, requiredFields) => {
+    if (typeof value === "function") {
+      return value(requiredFields);
+    } else {
+      return value;
+    }
+  };
+  [...required.values()].forEach((element) => {
     const fieldName = getField(element);
     const value = getValue(fieldName);
     if (value === undefined) {
@@ -289,19 +320,29 @@ export function createRecord(values: Map<string, Integer>|Record<string, Integer
       result[fieldName] = value;
     }
   });
-  [...(optional?.values()||[])].forEach(element => {
+  [...(optional?.values() || [])].forEach((element) => {
     const fieldName = getField(element);
     const value = getValue(fieldName);
     if (value !== undefined) {
       result[fieldName] = value;
-    } else if (defaultValues?.has(fieldName)) {
-      result[fieldName] = getDefaultValue(defaultValues.get(fieldName), new Set([...required.values()].map( (reqField) => {
-        const fieldName = getField(reqField);
-        return getValue(fieldName)
-      if (result[fieldName] === "undefined") {
-        delete result[fieldName];
+    } else if (defaultValues != undefined && defaultValues.has(fieldName)) {
+      const defaultValue = defaultValues.get(fieldName);
+      if (defaultValue !== undefined) {
+        const fieldValue = getDefaultValue(
+          defaultValue,
+          [...required.values()].map((reqField) => {
+            const fieldName = getField(reqField);
+            const fieldValue = getValue(fieldName);
+            if (fieldValue === undefined) {
+              throw new UnsupportedFieldException(null, null, fieldName);
+            }
+            return fieldValue;
+          })
+        );
+        if (fieldValue !== undefined) {
+          result[fieldName] = fieldValue;
+        }
       }
-    })))
     }
   });
 

@@ -1,6 +1,11 @@
 import { describe, it } from "mocha";
 import { expect, should } from "chai";
-import { ComparisonResult, DefaultComparison, getComparisonResult } from "../comparison.js";
+import {
+  ComparisonResult,
+  DefaultComparison,
+  getComparisonResult,
+  isInteger,
+} from "../comparison.js";
 
 describe("Comparison result tests", () => {
   const lesserTestValues = [
@@ -175,12 +180,26 @@ describe("Test default comparison", () => {
           : "greater than"
       } ${comparee}`, () => {
         let result: ComparisonResult;
-        expect( () => {result = cmp.compare(value, comparee)}).not.throw();
+        expect(() => {
+          result = cmp.compare(value, comparee);
+        }).not.throw();
         result = cmp.compare(value, comparee);
-        expect(result.exists, `Expected exists ${expected.exists}, but got ${result.exists}`).equal(expected.exists);
-        expect(result.isLesser, `Expected exists ${expected.isLesser}, but got ${result.isLesser}`).equal(expected.isLesser);
-        expect(result.isGreater, `Expected exists ${expected.isGreater}, but got ${result.isGreater}`).equal(expected.isGreater);
-        expect(result.isEqual, `Expected exists ${expected.isEqual}, but got ${result.isEqual}`).equal(expected.isEqual);
+        expect(
+          result.exists,
+          `Expected exists ${expected.exists}, but got ${result.exists}`
+        ).equal(expected.exists);
+        expect(
+          result.isLesser,
+          `Expected exists ${expected.isLesser}, but got ${result.isLesser}`
+        ).equal(expected.isLesser);
+        expect(
+          result.isGreater,
+          `Expected exists ${expected.isGreater}, but got ${result.isGreater}`
+        ).equal(expected.isGreater);
+        expect(
+          result.isEqual,
+          `Expected exists ${expected.isEqual}, but got ${result.isEqual}`
+        ).equal(expected.isEqual);
       });
     });
   });
@@ -209,13 +228,61 @@ describe("Test default comparison", () => {
           : "greater than"
       } "${comparee}"`, () => {
         let result: ComparisonResult;
-        expect( () => {result = cmp.compare(value, comparee)}).not.throw();
+        expect(() => {
+          result = cmp.compare(value, comparee);
+        }).not.throw();
         result = cmp.compare(value, comparee);
-        expect(result.exists, `Expected exists ${expected.exists}, but got ${result.exists}`).equal(expected.exists);
-        expect(result.isLesser, `Expected exists ${expected.isLesser}, but got ${result.isLesser}`).equal(expected.isLesser);
-        expect(result.isGreater, `Expected exists ${expected.isGreater}, but got ${result.isGreater}`).equal(expected.isGreater);
-        expect(result.isEqual, `Expected exists ${expected.isEqual}, but got ${result.isEqual}`).equal(expected.isEqual);
+        expect(
+          result.exists,
+          `Expected exists ${expected.exists}, but got ${result.exists}`
+        ).equal(expected.exists);
+        expect(
+          result.isLesser,
+          `Expected exists ${expected.isLesser}, but got ${result.isLesser}`
+        ).equal(expected.isLesser);
+        expect(
+          result.isGreater,
+          `Expected exists ${expected.isGreater}, but got ${result.isGreater}`
+        ).equal(expected.isGreater);
+        expect(
+          result.isEqual,
+          `Expected exists ${expected.isEqual}, but got ${result.isEqual}`
+        ).equal(expected.isEqual);
       });
     });
   });
+});
+
+describe("Testing Integer", () => {
+  const invalidIntegers = [
+    0.1,
+    0.5,
+    0 - Number.EPSILON,
+    0 + Number.EPSILON,
+    2**54,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NaN,
+  ];
+  invalidIntegers.forEach( (value) => {
+    it(`Invalid integer ${value}`, () => {
+      expect(isInteger(value)).false;
+    });
+  })
+
+  const validIntegers = [
+    0,
+    1,
+    2**32, 
+    2**52,
+    -(2**32),
+    -(2**52),
+    Number.MAX_SAFE_INTEGER,
+    Number.MIN_SAFE_INTEGER,
+  ];
+  validIntegers.forEach( (value) => {
+    it(`Valid integer ${value}`, () => {
+      expect(isInteger(value)).true;
+    });
+  })
 });

@@ -6,7 +6,7 @@
   "module": "dist/index.es.js",
   "scripts": {
     "compile": "tsc",
-    "test": "mocha --harmony"
+    "test": "cross-env TS_NODE_COMPILER_OPTIONS={\\\"module\\\":\\\"commonjs\\\"} mocha --extension .ts -r ts-node/register"
   },
   "repository": {
     "type": "git",
@@ -26,10 +26,10 @@
   "devDependencies": {
     "@types/chai": "^4.3.11",
     "@types/mocha": "^10.0.6",
-    "@types/sinon": "^17.0.3",
     "chai": "^5.0.0",
+    "cross-env": "^7.0.3",
     "mocha": "^10.2.0",
-    "sinon": "^17.0.1",
+    "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {

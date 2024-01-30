@@ -230,7 +230,7 @@ export function isPositiveInteger(value: number): value is PositiveInteger {
 /**
  * A comparable is a wrapper class combining both comparable and ordered with a number.
  */
-export class ComparableNumber implements Comparable<number | ComparableNumber>, Ordered<ComparableNumber> {
+export class ComparableNumber implements Comparable<number | ComparableNumber> {
   /**
    * The value of the comparable number.
    */
@@ -261,19 +261,6 @@ export class ComparableNumber implements Comparable<number | ComparableNumber>, 
     return this.value;
   }
 
-  get successor(): ComparableNumber | undefined {
-    if (Number.isFinite(this.value) && this.value < Number.MAX_VALUE) {
-      return new ComparableNumber(this.value + Number.EPSILON);
-    }
-    return undefined;
-  }
-
-  get predecessor(): ComparableNumber | undefined {
-    if (Number.isFinite(this.value) && this.value > Number.MIN_VALUE) {
-      return new ComparableNumber(this.value - Number.EPSILON);
-    }
-    return undefined;
-  }
 }
 /**
  * Comparable integer value. The value order includes only integers.

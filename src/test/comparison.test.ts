@@ -1,6 +1,7 @@
 import { describe, it } from "mocha";
 import { expect, should } from "chai";
 import {
+  ComparableInteger,
   ComparisonResult,
   DefaultComparison,
   getComparisonResult,
@@ -259,30 +260,83 @@ describe("Testing Integer", () => {
     0.5,
     0 - Number.EPSILON,
     0 + Number.EPSILON,
-    2**54,
+    2 ** 54,
     Number.POSITIVE_INFINITY,
     Number.NEGATIVE_INFINITY,
     Number.NaN,
   ];
-  invalidIntegers.forEach( (value) => {
+  invalidIntegers.forEach((value) => {
     it(`Invalid integer ${value}`, () => {
       expect(isInteger(value)).false;
     });
-  })
+  });
 
   const validIntegers = [
     0,
     1,
-    2**32, 
-    2**52,
-    -(2**32),
-    -(2**52),
+    2 ** 32,
+    2 ** 52,
+    -(2 ** 32),
+    -(2 ** 52),
     Number.MAX_SAFE_INTEGER,
     Number.MIN_SAFE_INTEGER,
   ];
-  validIntegers.forEach( (value) => {
+  validIntegers.forEach((value) => {
     it(`Valid integer ${value}`, () => {
       expect(isInteger(value)).true;
     });
-  })
+  });
+});
+
+describe("Test ComparableNumber", () => {
+  describe("Test compareTo", () => {});
+});
+
+describe("Test CmparableInteger", () => {
+  const invalidIntegers = [
+    0.1,
+    0.5,
+    0 - Number.EPSILON,
+    0 + Number.EPSILON,
+    2 ** 54,
+    Number.POSITIVE_INFINITY,
+    Number.NEGATIVE_INFINITY,
+    Number.NaN,
+  ];
+  const validIntegers = [
+    0,
+    1,
+    2 ** 32,
+    2 ** 52,
+    -(2 ** 32),
+    -(2 ** 52),
+    Number.MAX_SAFE_INTEGER,
+    Number.MIN_SAFE_INTEGER,
+  ];
+  describe("Test new", () => {
+    invalidIntegers.forEach((value) => {
+      it(`Invalid integer ${value}`, () => {
+        expect(() => {
+          new ComparableInteger(value);
+        }).to.throw();
+      });
+    });
+    validIntegers.forEach((value) => {
+      it(`Valid integer ${value}`, () => {
+        expect(() => {
+          new ComparableInteger(value);
+        }).to.not.throw();
+        expect(new ComparableInteger(value).valueOf()).to.equal(value);
+      });
+    });
+  });
+  describe("Test compareTo", () => {
+    validIntegers.map( (num) => (new ComparableInteger(num))).forEach((value, index) => {
+      validIntegers.map( (num) => (new ComparableInteger(num))).forEach((comparee, compareeIndex) => {
+        it(`Commutatibile ${value}.compareTo(${comparee}) === -${comparee}.compareTo(${value})`, () =>{
+          expect(value.compareTo(comparee).valueOf()).to.equal(-comparee.compareTo(value).valueOf());
+        });
+      });
+    });
+  });
 });

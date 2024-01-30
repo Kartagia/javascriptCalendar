@@ -1,6 +1,6 @@
 import { describe, it } from "mocha";
 import { expect, should } from "chai";
-import { ComparisonResult, getComparisonResult } from "../comparison.js";
+import { ComparisonResult, DefaultComparison, getComparisonResult } from "../comparison.js";
 
 describe("Comparison result tests", () => {
   const lesserTestValues = [
@@ -138,6 +138,83 @@ describe("Comparison result tests", () => {
           result = getComparisonResult(value);
         }).not.throw();
         expect(expected(result)).true;
+      });
+    });
+  });
+});
+
+describe("Test default comparison", () => {
+  const numbersInOrder = [
+    Number.NEGATIVE_INFINITY,
+    Number.MIN_SAFE_INTEGER,
+    -(2 ** 32),
+    -(2 ** 10),
+    -(2 ** 8),
+    -255,
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    255,
+    2 ** 8,
+    2 ** 10,
+    2 ** 32,
+    Number.MAX_SAFE_INTEGER,
+    Number.POSITIVE_INFINITY,
+  ];
+  const cmp = DefaultComparison;
+  numbersInOrder.forEach((value, index, arr) => {
+    arr.forEach((comparee, compareeIndex) => {
+      const expected = getComparisonResult(index - compareeIndex);
+      it(`Case ${value} is ${
+        index < compareeIndex
+          ? "less than"
+          : index === compareeIndex
+          ? "equal to"
+          : "greater than"
+      } ${comparee}`, () => {
+        let result: ComparisonResult;
+        expect( () => {result = cmp.compare(value, comparee)}).not.throw();
+        result = cmp.compare(value, comparee);
+        expect(result.exists, `Expected exists ${expected.exists}, but got ${result.exists}`).equal(expected.exists);
+        expect(result.isLesser, `Expected exists ${expected.isLesser}, but got ${result.isLesser}`).equal(expected.isLesser);
+        expect(result.isGreater, `Expected exists ${expected.isGreater}, but got ${result.isGreater}`).equal(expected.isGreater);
+        expect(result.isEqual, `Expected exists ${expected.isEqual}, but got ${result.isEqual}`).equal(expected.isEqual);
+      });
+    });
+  });
+  const stringsInOrder = [
+    "",
+    " ",
+    "!",
+    "/",
+    0,
+    1,
+    9,
+    "9a",
+    "A",
+    "a",
+    "bAr",
+    "bar",
+  ];
+  stringsInOrder.forEach((value, index, arr) => {
+    arr.forEach((comparee, compareeIndex) => {
+      const expected = getComparisonResult(index - compareeIndex);
+      it(`Case "${value}" is ${
+        index < compareeIndex
+          ? "less than"
+          : index === compareeIndex
+          ? "equal to"
+          : "greater than"
+      } "${comparee}"`, () => {
+        let result: ComparisonResult;
+        expect( () => {result = cmp.compare(value, comparee)}).not.throw();
+        result = cmp.compare(value, comparee);
+        expect(result.exists, `Expected exists ${expected.exists}, but got ${result.exists}`).equal(expected.exists);
+        expect(result.isLesser, `Expected exists ${expected.isLesser}, but got ${result.isLesser}`).equal(expected.isLesser);
+        expect(result.isGreater, `Expected exists ${expected.isGreater}, but got ${result.isGreater}`).equal(expected.isGreater);
+        expect(result.isEqual, `Expected exists ${expected.isEqual}, but got ${result.isEqual}`).equal(expected.isEqual);
       });
     });
   });

@@ -1,4 +1,4 @@
-import { TemporalFieldly } from "./index";
+import { TemporalFieldly } from "./temporal.js";
 
 /**
  * Calendar exceptions represents errors caused by the calendar module.
@@ -8,16 +8,16 @@ export class CalendarException extends Error {
   /**
    * The cause of the error.
    */
-  private cause: string | Error | undefined;
+  public readonly cause: string | Error | undefined;
 
   /**
    * Create a new calendar exception.
    * @param message The message of the error.
    * @param cause The cause of the error.
    */
-  constructor(message: string, cause: string | Error | undefined) {
+  constructor(message: string, cause: string | Error | undefined | null) {
     super(message);
-    this.cause = cause;
+    this.cause = cause ?? undefined;
     this.name = this.constructor.name; // Setting the error name.
   }
 
@@ -66,8 +66,8 @@ export class UnsupportedFieldException extends CalendarException {
    * @param field The unsupported field.
    */
   constructor(
-    message: string | undefined,
-    cause: string | Error | undefined,
+    message: string | undefined | null,
+    cause: string | Error | undefined | null,
     field: string | TemporalFieldly
   ) {
     super(
@@ -75,7 +75,7 @@ export class UnsupportedFieldException extends CalendarException {
       `Unsupported temporal field ${UnsupportedFieldException.getFieldName(
         field
       )}`,
-      cause
+      cause ?? undefined
     );
     this.field = field;
   }
@@ -109,9 +109,9 @@ export class InvalidFieldValue<Cause=(string|Error), Value=any> extends RangeErr
    * @param value The invalid value.
    * @param cause The cause of the error.
    */
-  constructor(message: string, value: Value, cause: Cause|undefined) {
+  constructor(message: string, value: Value, cause: Cause|undefined|null) {
     super(message);
-    this.cause = cause;
+    this.cause = cause ?? undefined;
     this.value = value;
     this.name = this.constructor.name;
   }

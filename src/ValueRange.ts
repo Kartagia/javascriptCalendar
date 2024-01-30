@@ -1,4 +1,4 @@
-import { Comparable, ComparisonResult, getComparisonResult } from "./comparison";
+import { Comparable, ComparisonResult, getComparisonResult } from "./comparison.js";
 
 /**
  * Value range represents a range of values.

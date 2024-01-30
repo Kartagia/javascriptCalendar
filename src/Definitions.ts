@@ -1,4 +1,4 @@
-import { Integer, getComparisonResult } from "./comparison";
+import { Integer, getComparisonResult } from "./comparison.js";
 
 /**
  * The definitions of the calendar and temporal fields.

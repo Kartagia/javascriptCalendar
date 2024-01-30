@@ -1,5 +1,5 @@
-import { ValueRange } from "./ValueRange";
-import { Comparable, Ordered } from "./comparison";
+import { ValueRange } from "./ValueRange.js";
+import { Comparable, Ordered } from "./comparison.js";
 
 
 export function isOrdered<Type>(value: object): value is Ordered<Type> {

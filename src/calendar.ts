@@ -8,7 +8,7 @@
 import { ComparableInteger, Integer, isInteger } from "./comparison";
 import { Definitions } from "./Definitions";
 import { CalendarException, InvalidFieldValue, UnsupportedFieldException } from "./exceptions";
-import { TemporalFieldly, FieldDefinitionFunction, TemporalFieldlyValue, FieldDefinition, TemporalInstance, TemporalInstance as FieldInstance, TemporalFieldsInstance, createRecord } from "./temporal";
+import { TemporalFieldly, FieldDefinitionFunction, TemporalFieldlyValue, FieldDefinition, TemporalInstance, TemporalInstance as FieldInstance, TemporalFieldsInstance, createRecord, FieldValueFunction } from "./temporal";
 import { TemporalValueRange } from "./temporal";
 import { VagueValueRange } from "./VagueValueRange";
 import { ValueRange } from "./ValueRange";
@@ -483,11 +483,11 @@ export class BasicCalendarInstance implements CalendarInstance {
    * The mapping from derived field names to the values of the derived fields or functions determining
    * the values from teh base fields.
    */
-  private derivedFields: Map<string, Integer|((requiredFieldValues: Set<Integer>)=>Integer)>;
+  private derivedFields: Map<string, Integer|FieldValueFunction>;
 
   constructor(calendar: Calendar, definition: FieldDefinition, fieldValues: FieldInstance|Record<string, Integer>, 
     requiredFields: Set<string>|undefined = undefined, 
-    derivedFields : Map<string, Integer|((requiredValues: Set<Integer>)=>Integer)>|undefined = undefined) {
+    derivedFields : Map<string, Integer|FieldValueFunction>|undefined = undefined) {
     this.calendar = calendar;
     this.definition =  definition;
     this.setFieldValues(fieldValues);
@@ -507,7 +507,7 @@ export class BasicCalendarInstance implements CalendarInstance {
    * Get the default values of the fields. 
    * @returns The default value mapping.
    */
-  getDefaultValues(): Readonly<Map<string, Integer|((values: Set<Integer>)=>Integer)>> {
+  getDefaultValues(): Readonly<Map<string, Integer|FieldValueFunction>> {
     return this.derivedFields;
   }
 
@@ -530,17 +530,15 @@ export class BasicCalendarInstance implements CalendarInstance {
     throw new UnsupportedFieldException(null, null, fieldName);
   }
 
-  getRequiredFieldValues(): Set<Integer> {
-    const result = new Set<Integer>();
-    this.getBaseFields().forEach( (field) => {
+  getRequiredFieldValues(): Array<Integer> {
+    return [...this.getBaseFields()].map( (field) => {
       const fieldName = typeof field === "string" ? field : field.fieldName;
       if (fieldName in this.fieldValues) {
-        result.add(this.fieldValues[fieldName]);
+        return this.fieldValues[fieldName];
       } else {
         throw new Error(`Invalid required field ${fieldName}`);
       }
     });
-    return result;
   }
 
   get(): Integer;

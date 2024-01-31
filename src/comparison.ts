@@ -268,6 +268,38 @@ export class ComparableNumber implements Comparable<number | ComparableNumber> {
 export class ComparableInteger extends ComparableNumber implements Ordered<ComparableInteger> {
 
   /**
+   * Can value convert to a comparable integer.
+   * @param value The tested value.
+   * @returns True, if and only if the given value can be converted to comaprable integer.
+   */
+  static convertableComparableInteger(value: any): boolean {
+    if (typeof value=== "number") {
+      return isInteger(value);
+    } else if (typeof value === "string" || typeof value === "object") {
+      let valueOf;
+      if ("valueOf" in value && typeof (valueOf = value.valueOf()) === "number") {
+        return isInteger(valueOf);
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Convert a value to comparable integer.
+   * @param value The converted value.
+   * @returns The given value as comaprable integer.
+   * @throws {TypeError} The given value is not convertable to comparable integer.
+   */
+  static toComparableInteger(value: any): ComparableInteger {
+    if (this.convertableComparableInteger(value)) {
+      return new ComparableInteger(+value);
+    } else {
+      throw new TypeError("Value is not comparable integer");
+    }
+  }
+
+  /**
    * Create a new comparable integer.
    * @param value The value of the comparable integer.
    * @throws {RangeError} The value was not a safe integer.
